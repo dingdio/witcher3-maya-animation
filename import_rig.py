@@ -109,7 +109,7 @@ def constrain_w3_rig(filename, ns):
     cmds.confirmDialog( title='Witcher 3',message='The rig has been attached.' )
 
 # Define a function
-def export_w3_animation(filename, rig_filename):
+def export_w3_animation(filename, rig_filename, anim_name ="default_name"):
 
     output = list()
     w3Data = loadW3File(rig_filename)
@@ -199,7 +199,7 @@ def export_w3_animation(filename, rig_filename):
             longestnumframes = data['scale_numFrames']
         output.append(data)
     output2 = {
-        "name": "default_name",
+        "name": anim_name,
         "bones": output,
         "duration": longestnumframes/float(30),
         "numFrames": longestnumframes,
@@ -287,6 +287,7 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
                     cmds.setKeyframe( at='rotate', itt='auto', ott='auto' )
                 except IndexError:
                     pass
+    return animData
 
 
 def import_w3_face(filename):
