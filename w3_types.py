@@ -24,7 +24,8 @@ class w2AnimsFrames:
                 rotationFrames,
                 scale_dt,
                 scale_numFrames,
-                scaleFrames):
+                scaleFrames,
+                rotationFramesQuat):
         self.id = id
         self.BoneName = BoneName
         self.position_dt = position_dt
@@ -36,6 +37,7 @@ class w2AnimsFrames:
         self.scale_dt = scale_dt
         self.scale_numFrames = scale_numFrames
         self.scaleFrames = scaleFrames
+        self.rotationFramesQuat = rotationFramesQuat
 
 class W3Data:
 

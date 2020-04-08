@@ -201,7 +201,7 @@ def export_w3_animation(filename, rig_filename, anim_name ="default_name"):
     output2 = {
         "name": anim_name,
         "bones": output,
-        "duration": longestnumframes/float(30),
+        "duration": longestnumframes * 0.0333333351,
         "numFrames": longestnumframes,
         "dt": 0.0333333351
     }
@@ -238,7 +238,7 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
     #cmds.playbackOptions(q= 1, min= 1)
     # end time of playback
     #cmds.playbackOptions(q= 1, max= animData.numFrames, aet=animData.numFrames)
-    cmds.playbackOptions( min='0', max=str(animData.numFrames), ast='0', aet=str(animData.numFrames))
+    cmds.playbackOptions( min='0', max=str(animData.numFrames-1), ast='0', aet=str(animData.numFrames-1))
     # start time of playback
     start = cmds.playbackOptions(q= 1, min= 1)
     # end time of playback
@@ -264,7 +264,7 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
                         cmds.xform( t=(bone.positionFrames[frame_array.index(i)][0],
                                         bone.positionFrames[frame_array.index(i)][1],
                                         bone.positionFrames[frame_array.index(i)][2]))
-                    cmds.setKeyframe( at='translate', itt='spline', ott='spline' )
+                        cmds.setKeyframe( at='translate', itt='spline', ott='spline' )
                 except IndexError:
                     pass
                     # handle this
@@ -274,7 +274,7 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
                     frame_skip = round(float(total_frames)/float(bone_frames))
                     frame_array = [frame_skip*n for n in range(0,bone_frames)]
                     if float(i) in frame_array:
-                        xform.setRotation(bone.rotationFrames[frame_array.index(i)], om.MSpace.kObject)
+                        xform.setRotation(bone.rotationFramesQuat[frame_array.index(i)], om.MSpace.kObject)
                         #MIMIC POSES DON'T GET INVERTED
                         # if type is "face":
                         #     cmds.xform( ro=(bone.rotationFrames[frame_array.index(i)][0],
@@ -284,7 +284,7 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
                         #     cmds.xform( ro=(-bone.rotationFrames[frame_array.index(i)][0],
                         #                     -bone.rotationFrames[frame_array.index(i)][1],
                         #                     -bone.rotationFrames[frame_array.index(i)][2]))
-                    cmds.setKeyframe( at='rotate', itt='auto', ott='auto' )
+                        cmds.setKeyframe( at='rotate', itt='auto', ott='auto' )
                 except IndexError:
                     pass
     return animData

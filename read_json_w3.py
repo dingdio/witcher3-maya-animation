@@ -96,7 +96,7 @@ def readAnimation(file):
         boneName = file[boneId]['BoneName']
         positionFrames=[]
         rotationFrames=[]
-        #rotationFramesQuat=[]
+        rotationFramesQuat=[]
         scaleFrames=[]
 
         posFramesArr = file[boneId]['positionFrames']
@@ -111,12 +111,12 @@ def readAnimation(file):
         for frameId in range(len(rotFramesArr)):
             quat_read = readXYZW(rotFramesArr[frameId])
             quat = om.MQuaternion(quat_read[0],quat_read[1],quat_read[2],-quat_read[3] )
-            # euler = quat.asEulerRotation()
-            # e = euler.reorderIt(5)
-            # ro = readEulerXYZ(e)
-            # rotationFrames.append(ro)
+            euler = quat.asEulerRotation()
+            e = euler.reorderIt(5)
+            ro = readEulerXYZ(e)
+            rotationFrames.append(ro)
             quat.normalizeIt()
-            rotationFrames.append(quat)
+            rotationFramesQuat.append(quat)
 
         frames = w3_types.w2AnimsFrames(boneId,
                         BoneName = file[boneId]['BoneName'],
@@ -128,7 +128,8 @@ def readAnimation(file):
                         rotationFrames = rotationFrames,
                         scale_dt = file[boneId]['scale_dt'],
                         scale_numFrames = file[boneId]['scale_numFrames'],
-                        scaleFrames = scaleFrames)
+                        scaleFrames = scaleFrames,
+                        rotationFramesQuat = rotationFramesQuat)
         bones.append(frames)
     return bones
 
