@@ -52,6 +52,7 @@ def import_w3_rig(filename):
         # cmds.setAttr("{}.rotateX".format(bone.name),float(-bone.ro[0]));
         # cmds.setAttr("{}.rotateY".format(bone.name),float(-bone.ro[1]));
         # cmds.setAttr("{}.rotateZ".format(bone.name),float(-bone.ro[2]));
+    return w3Data.bones[0].name;
 
 def export_w3_rig(filename):
     names = cmds.ls(sl=True,long=False) or []
@@ -142,7 +143,7 @@ def export_w3_animation(filename, rig_filename, anim_name ="default_name"):
                     scale = cmds.xform(rig_bone.name, q= 1, s= 1, r=1)
                     if frame is int(start) or cmds.selectKey( rig_bone.name, add=1, time=(frame,frame), k=1, attribute='translateX' ):
                         bone_frames[rig_bone.name]['positionFrames'].append({
-                            "x": pos[0],
+                            "x": pos[0], #format(pos[0], '.5f')
                             "y": pos[1],
                             "z": pos[2],
                         })
@@ -274,8 +275,13 @@ def import_w3_animation(anim_filename, rig_filename, type="animation"):
                     frame_skip = round(float(total_frames)/float(bone_frames))
                     frame_array = [frame_skip*n for n in range(0,bone_frames)]
                     if float(i) in frame_array:
-                        xform.setRotation(bone.rotationFramesQuat[frame_array.index(i)], om.MSpace.kObject)
                         #MIMIC POSES DON'T GET INVERTED
+                        if type is "face":
+                            cmds.xform( ro=(-bone.rotationFrames[frame_array.index(i)][0],
+                                            -bone.rotationFrames[frame_array.index(i)][1],
+                                            -bone.rotationFrames[frame_array.index(i)][2]))
+                        else:
+                            xform.setRotation(bone.rotationFramesQuat[frame_array.index(i)], om.MSpace.kObject)
                         # if type is "face":
                         #     cmds.xform( ro=(bone.rotationFrames[frame_array.index(i)][0],
                         #                     bone.rotationFrames[frame_array.index(i)][1],

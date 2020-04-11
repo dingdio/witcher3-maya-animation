@@ -113,11 +113,11 @@ class RedManager(QtWidgets.QWidget):
         exportAnimBtn.clicked.connect(self.exportAnims)
         layout.addWidget(exportAnimBtn, 3, 1)
 
-        importFacBtn = QtWidgets.QPushButton('Import w2fac.json')
+        importFacBtn = QtWidgets.QPushButton('Import w3fac.pose.json')
         importFacBtn.clicked.connect(self.importFac)
         layout.addWidget(importFacBtn, 2, 2)
 
-        exportFacBtn = QtWidgets.QPushButton('Export w2fac.json')
+        exportFacBtn = QtWidgets.QPushButton('Export w3fac.pose.json')
         exportFacBtn.clicked.connect(self.exportFac)
         layout.addWidget(exportFacBtn, 3, 2)
 
@@ -271,7 +271,7 @@ class RedManager(QtWidgets.QWidget):
     def retranslateUi(self, redManager):
         _translate = QtCore.QCoreApplication.translate
         redManager.setWindowTitle(_translate("redManager", "Witcher 3 Tools"))
-        self.groupRig.setTitle(_translate("redManager", "w2rig.json"))
+        self.groupRig.setTitle(_translate("redManager", "w2rig.json or w3fac.json"))
         self.rigLabel.setText(_translate("redManager", "Target Rig:"))
         self.rig.setText(_translate("redManager", "NOT LOADED"))
         self.importRigBtn.setText(_translate("redManager", "Import"))
@@ -281,8 +281,8 @@ class RedManager(QtWidgets.QWidget):
         self.addNS.setText(_translate("redManager", "Add"))
         self.remNS.setText(_translate("redManager", "Remove"))
         self.attachRigBtn.setText(_translate("redManager", "Attach"))
-        self.groupFac.setTitle(_translate("redManager", "w2fac.json"))
-        self.facLabel.setText(_translate("redManager", "Target Face:"))
+        self.groupFac.setTitle(_translate("redManager", "w3fac.pose.json"))
+        self.facLabel.setText(_translate("redManager", "Face Pose:"))
         self.importFacBtn.setText(_translate("redManager", "Import"))
         self.exportFacBtn.setText(_translate("redManager", "Export"))
         self.groupAnims.setTitle(_translate("redManager", "w2anims.json"))
@@ -300,14 +300,14 @@ class RedManager(QtWidgets.QWidget):
 
     def importRig(self):
         directory = self.getDirectory()
-        fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select Rig", directory,"W3 Json (*.w2rig.json)")
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select Rig", directory,"W3 Json (*.w2rig.json *.w3fac.json)")
         if not fileName[0]:
             pass
         else:
-            import_rig.import_w3_rig(fileName[0])
+            root_bone = import_rig.import_w3_rig(fileName[0])
             self.rig.setText(fileName[0])
             cmds.group( n='group1', em=True )
-            cmds.parent( 'Root', 'group1' )
+            cmds.parent( root_bone, 'group1' )
             cmds.select('group1');
             cmds.xform( ro=(90,0,180), s=(100,100,100))
 
@@ -345,20 +345,23 @@ class RedManager(QtWidgets.QWidget):
 
     def importFac(self):
         directory = self.getDirectory()
-        fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select w2Fac.json", directory,"W3 Json (*.w2Fac.json)")
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select Pose", directory,"W3 Json (*.w3fac.pose.json)")
         if not fileName[0]:
             pass
         else:
-            import_rig.import_w3_rig(fileName[0])
+            rig_filename = self.rig.text()
+            animData = import_rig.import_w3_animation(fileName[0], rig_filename, "face")
+            #import_rig.import_w3_rig(fileName[0])
             self.fac.setText(fileName[0])
 
     def exportFac(self):
         directory = self.getDirectory()
-        fileName = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', directory,"W3 Json (*.w2Fac.json)")
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', directory,"W3 Json (*.w3fac.pose.json)")
         if not fileName[0]:
             pass
         else:
-            import_rig.export_w3_rig(fileName[0])
+            pass
+            #import_rig.export_w3_rig(fileName[0])
 
     def addNSFun(self):
         ns = self.model_ns.text()
