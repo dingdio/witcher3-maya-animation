@@ -9,6 +9,7 @@ In particular you can :
 
 Links :
 - [Wolven-kit](https://github.com/Traderain/Wolven-kit)
+- [Mega folder with example json](https://mega.nz/folder/EyZjkawT#rmXWyanHjtX8r3X_GEyIwg)
 
 
 Mimics:
