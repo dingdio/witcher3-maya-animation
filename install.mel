@@ -1,0 +1,12 @@
+/*
+Drag and drop for Maya 2016+
+*/
+
+global proc w3Install() {
+    string $whatIs = `whatIs w3Install`;
+    string $path = `substring $whatIs 25 999`;
+    string $filename = `substitute "install.mel" $path "install.py"`;;
+    python("import imp;imp.load_source('_w3Install', '"+$filename+"')");
+}
+
+w3Install();
