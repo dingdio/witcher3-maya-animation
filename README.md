@@ -26,7 +26,7 @@ In particular you can :
 
 ## Manual Installation
 
-Add this repo to your maya scripts directory, start Maya and run the following code in the Python script editor.
+Add this repo to your maya scripts directory and name it witcher3, start Maya and run the following code in the Python script editor.
 
 ```
 import witcher3
