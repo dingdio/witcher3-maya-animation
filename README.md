@@ -13,8 +13,8 @@ In particular you can :
 
 ## Tutorials and Links
 - [Mega folder with example json animations](https://mega.nz/folder/KMBHBQzZ#aLQCsUk0OZ50QSCJzWeuIw)
-- [Importing JSON Animations With Wolven kit] (https://github.com/dingdio/witcher3-maya-animation/wiki/Viewing-and-Exporting-Witcher-3-Animations-in-Maya-2020)
-- [Viewing and Exporting Witcher 3 Animations in Maya 2020] (https://github.com/dingdio/witcher3-maya-animation/wiki/Importing-JSON-Animations-With-Wolven-kit)
+- [Viewing and Exporting Witcher 3 Animations in Maya 2020](https://github.com/dingdio/witcher3-maya-animation/wiki/Viewing-and-Exporting-Witcher-3-Animations-in-Maya-2020)
+- [Importing JSON Animations With Wolven kit](https://github.com/dingdio/witcher3-maya-animation/wiki/Importing-JSON-Animations-With-Wolven-kit)
 - [Wolven-kit](https://github.com/Traderain/Wolven-kit)
 
 ## Installation
