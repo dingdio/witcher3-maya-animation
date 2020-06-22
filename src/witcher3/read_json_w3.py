@@ -1,11 +1,13 @@
 
 import json
-from . import w3_types
+import w3_types
 reload(w3_types)
+import maya.api.OpenMaya as om
 import maya.api.OpenMaya as om
 from maya import cmds
 from math import degrees
 from math import radians
+import pymel.core as pm
 
 def readXYZ(file):
     x = file["X"]  # X pos
@@ -74,19 +76,33 @@ def eularToQuat(file):
     rot = [quat.x,quat.y,quat.z,quat.w]
     return rot
 
-def readW3Data(filename):
+def readCSkeleton(filename):
     with open(filename) as file:
         data = file.read()
         ioStream = json.loads(data)
     print('Reading Bones')
     bones = readBones(ioStream)
     hasBones = bool(bones)
-    #print('Reading Meshes')
-    #meshes = readMeshes(ioStream, hasBones)
-    w3ModelData = w3_types.W3Data(bones=bones, json=ioStream)
+    w3ModelData = w3_types.CSkeleton(bones=bones)
     return w3ModelData
 
-
+def readTracks(file):
+    tracks = []
+    # track Count
+    trackCount = len(file)
+    for trackId in range(trackCount):
+        trackName = file[trackId]['trackName']
+        trackFrames= []
+        trackFramesArr = file[trackId]['trackFrames']
+        for frameId in range(len(trackFramesArr)):
+            trackFrames.append(trackFramesArr[frameId])
+        frames = w3_types.Track(trackId,
+                        trackName = trackName,
+                        numFrames = file[trackId]['numFrames'],
+                        dt = file[trackId]['dt'],
+                        trackFrames= trackFrames)
+        tracks.append(frames)
+    return tracks
 
 def readAnimation(file):
     bones = []
@@ -133,21 +149,104 @@ def readAnimation(file):
         bones.append(frames)
     return bones
 
-def readAnimFile(filename):
+def readSkeletalAnimationSetEntry(json):
+    return w3_types.CSkeletalAnimationSetEntry.from_json(json)
+
+def readSkeletalAnimation(json):
+    print('Reading Animation')
+    return w3_types.CSkeletalAnimation.from_json(json)
+
+def readAnimBuffer(animBuffer):
+    if 'parts' in animBuffer:
+        result = readMultiPartAnimBuffer(animBuffer)
+    else:
+        result = readSingleAnimBuffer(animBuffer)
+    return result
+
+def readMultiPartAnimBuffer(animBuffer):
+    numFrames = animBuffer['numFrames']
+    numBones = animBuffer['numBones']
+    numTracks = animBuffer['numTracks']
+    firstFrames = animBuffer['firstFrames']
+    parts = readParts(animBuffer['parts'])
+    result = w3_types.CAnimationBufferMultipart(numFrames = numFrames,
+                                                numBones = numBones,
+                                                numTracks = numTracks,
+                                                firstFrames = firstFrames,
+                                                parts = parts)
+    return result
+
+def readParts(parts):
+    result = []
+    for part in parts:
+        mybuffer = readSingleAnimBuffer(part)
+        result.append(mybuffer)
+    return result
+
+def readSingleAnimBuffer(animBuffer):
+
+    bones = readAnimation(animBuffer['bones'])
+    hasBones = bool(bones)
+    if 'tracks' in animBuffer and animBuffer['tracks']:
+        tracks = readTracks(animBuffer['tracks'])
+    else:
+        tracks = []
+    duration = animBuffer['duration']
+    numFrames = animBuffer['numFrames']
+    dt = animBuffer['dt']
+    result = w3_types.CAnimationBufferBitwiseCompressed(bones=bones,
+                                            tracks=tracks,
+                                            duration=duration,
+                                            numFrames=numFrames,
+                                            dt=dt)
+    return result
+
+
+def readFaceFile(filename):
     with open(filename) as file:
         data = file.read()
-        animJson = json.loads(data)
-    print('Reading Animation')
-    bones = readAnimation(animJson['bones'])
-    hasBones = bool(bones)
-    name = animJson['name']
-    duration = animJson['duration']
-    numFrames = animJson['numFrames']
-    dt = animJson['dt']
-    w3AnimlData = w3_types.w2AnimsData(name = name,
-                                        duration = duration,
-                                        numFrames = numFrames,
-                                        dt = dt,
-                                        bones=bones,
-                                        json=animJson)
-    return w3AnimlData
+        loaded = json.loads(data)
+    print('Reading Face')
+    name = "N/A"
+    
+    mimicSkeleton = w3_types.CSkeleton(bones=readBones(loaded['mimicSkeleton']))
+    floatTrackSkeleton = w3_types.CSkeleton(bones=readBones(loaded['floatTrackSkeleton']))
+    mimicPoses = []
+    for pose in loaded['mimicPoses']:
+        posename = pose['name']
+        newPose = w3_types.CSkeletalAnimation(name = posename,
+                                        animBuffer=readAnimBuffer(pose))
+        mimicPoses.append(newPose)
+    CMimicFace = w3_types.CMimicFace(name = name,
+                                     mimicSkeleton = mimicSkeleton,
+                                     floatTrackSkeleton = floatTrackSkeleton,
+                                     mimicPoses=mimicPoses)
+    return CMimicFace
+
+
+def readEntFile(filename):
+    with open(filename) as file:
+        data = file.read()
+        ioStream = json.loads(data)
+    print('Reading Entity')
+    entity = w3_types.Entity(
+                name = ioStream['name'].replace(" ", "_"),
+                animation_rig = ioStream['animation_rig'],
+                includedTemplates  = ioStream['includedTemplates'],
+                staticMeshes  = ioStream.get("staticMeshes", {}))
+    return entity
+
+def Read_CSkeletalAnimationSet(json):
+    print('Reading Skeletal AnimationSet')
+    data = w3_types.CSkeletalAnimationSet.from_json(json)
+    return data
+
+def Read_CCutsceneTemplate(json):
+    print('Reading Cutscene')
+    # animBuffer = readAnimBuffer(json['animBuffer'])
+    # name = json['name']
+    # duration = json['duration']
+    # data = w3_types.CCutsceneTemplate(  animations = [],
+    #                                     SCutsceneActorDefs = [])
+    data = w3_types.CCutsceneTemplate.from_json(json)
+    return data
