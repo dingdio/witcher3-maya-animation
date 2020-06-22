@@ -1,6 +1,6 @@
 # witcher3-maya-animation
 These Maya tools allow the creation of json files that describe Witcher 3 animations. [Wolven-kit](https://github.com/Traderain/Wolven-kit) can then be used to import the json animations into Witcher 3 formats.
-
+![](https://i.imgur.com/KM1cfrR.jpg)
 
 ## Features
 
