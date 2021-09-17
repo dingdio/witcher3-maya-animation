@@ -229,11 +229,12 @@ def readEntFile(filename):
         data = file.read()
         ioStream = json.loads(data)
     print('Reading Entity')
-    entity = w3_types.Entity(
-                name = ioStream['name'].replace(" ", "_"),
-                animation_rig = ioStream['animation_rig'],
-                includedTemplates  = ioStream['includedTemplates'],
-                staticMeshes  = ioStream.get("staticMeshes", {}))
+    ioStream['name'] = ioStream['name'].replace(" ", "_")
+    entity = w3_types.Entity.from_json(ioStream)
+                # name = ,
+                # animation_rig = ioStream['animation_rig'],
+                # includedTemplates  = ioStream['includedTemplates'],
+                # staticMeshes  = ioStream.get("staticMeshes", {}))
     return entity
 
 def Read_CSkeletalAnimationSet(json):

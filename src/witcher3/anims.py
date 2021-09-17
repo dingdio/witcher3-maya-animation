@@ -313,7 +313,7 @@ def addAnimation(animData, scene_actor, start, end, firstFrame, type, al):
         if animData.tracks:
             for track in animData.tracks:
                 trackname = scene_actor+"_"+track.trackName
-                if pm.animLayer(trackname, query=True, ex=True):
+                if pm.animLayer(trackname, query=True, ex=True) and track.trackFrames:
                     try:
                         track_frames = len(track.trackFrames)
                         total_frames = animData.numFrames

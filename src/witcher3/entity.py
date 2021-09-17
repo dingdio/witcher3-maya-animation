@@ -11,23 +11,71 @@ reload(read_json_w3)
 import fbx_util
 reload(fbx_util)
 
+import settings
+reload(fbx_util)
+
+
+##Qt imports
+import vendor.Qt
+from vendor.Qt import QtWidgets, QtCore, QtGui
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(400, 300)
+        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
+        self.listWidget = QtWidgets.QListWidget(Dialog)
+        self.listWidget.setObjectName("listWidget")
+        self.verticalLayout.addWidget(self.listWidget)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.verticalLayout.addWidget(self.buttonBox)
+
+        self.retranslateUi(Dialog)
+        self.buttonBox.accepted.connect(Dialog.accept)
+        self.buttonBox.rejected.connect(Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.label.setText(_translate("Dialog", "Select Appearance"))
+
+    def loadEntity(self, entity):
+        for appearance in entity.appearances:
+            __sortingEnabled = self.listWidget.isSortingEnabled()
+            self.listWidget.setSortingEnabled(False)
+            item = QtWidgets.QListWidgetItem()
+            self.listWidget.addItem(item)
+            item.setText(appearance.name)
+            self.listWidget.setSortingEnabled(__sortingEnabled)
+        self.listWidget.setCurrentRow(0)
+
+
 def repo_file(filepath):
-    repo = "D:/Witcher_uncooked_clean/raw_ent/"
-    return repo+filepath
+    #repo = "D:/Witcher_uncooked_clean/raw_ent/"
+    return settings.get().repopath+filepath
 
 def fixed(entity):
-    entity.animation_rig = repo_file(entity.animation_rig)+".json";
-
-    for template in entity.includedTemplates:
-        for chunk in template['chunks']:
-            if "mesh" in chunk:
-                chunk['mesh'] = repo_file(chunk['mesh'].replace(".w2mesh", "_CONVERT_.fbx"))
-            if "skeleton" in chunk:
-                chunk['skeleton'] = repo_file(chunk['skeleton'])+".json"
-            if "dyng" in chunk:
-                chunk['dyng'] = repo_file(chunk['dyng'])+".json"
-            if "mimicFace" in chunk:
-                chunk['mimicFace'] = repo_file(chunk['mimicFace'])+".json"
+    entity.MovingPhysicalAgentComponent.skeleton = repo_file(entity.MovingPhysicalAgentComponent.skeleton)+".json";
+    
+    for appearance in entity.appearances:
+        for template in appearance.includedTemplates:
+            for chunk in template['chunks']:
+                if "mesh" in chunk:
+                    chunk['mesh'] = repo_file(chunk['mesh'].replace(".w2mesh", "_CONVERT_.fbx"))
+                if "skeleton" in chunk:
+                    chunk['skeleton'] = repo_file(chunk['skeleton'])+".json"
+                if "dyng" in chunk:
+                    chunk['dyng'] = repo_file(chunk['dyng'])+".json"
+                if "mimicFace" in chunk:
+                    chunk['mimicFace'] = repo_file(chunk['mimicFace'])+".json"
     if entity.staticMeshes:
         for chunk in entity.staticMeshes.get('chunks', []):
             if "mesh" in chunk:
@@ -56,7 +104,20 @@ def import_ent(filename, load_face_poses):
 
     entity = fixed(entity)
 
-    root_bone = import_rig.import_w3_rig(entity.animation_rig, entity.name)
+    if entity.appearances is not None and entity.appearances:
+        ## REGISTER DIALOGS
+        Dialog = QtWidgets.QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(Dialog)
+        ui.loadEntity(entity)
+        Dialog.show()
+        result = Dialog.exec_()
+        if not result:
+            print(ui.listWidget.selectedIndexes()[0].row())
+            return
+        
+
+    root_bone = import_rig.import_w3_rig(entity.MovingPhysicalAgentComponent.skeleton, entity.name)
     animation_rig = root_bone
     group = pm.group(n=entity.name+"_anim_skel", em=True )
     pm.parent(animation_rig,group)
@@ -73,80 +134,85 @@ def import_ent(filename, load_face_poses):
     HardAttachments = []
     hair_meshes = []
     eye_meshes = []
+    
 
-    #for template in entity.includedTemplates:
-    for i in range(len(entity.includedTemplates)):
-        cur_chunks = entity.includedTemplates[i]['chunks']
-        for chunk in cur_chunks:
-            #each chunk gets it's own namespace as each "CMeshComponent" has lods and materials with the same name
-            # ENTITY_NAMESPACE + TYPE + TEMPLATE_INDEX + CHUNK_INDEX
-            chunk_namespace = ent_namespace+chunk['type']+str(i)+str(chunk['chunkIndex'])
-            if not isChildNode(chunk['chunkIndex'], cur_chunks):
-                constrains.append([entity.name, chunk_namespace])
-            if chunk['type'] == "CMeshSkinningAttachment" or chunk['type'] == "CAnimatedAttachment":
-                parent = chunk['parent']
-                child = chunk['child']
-                for findChunk in cur_chunks:
-                    if findChunk['chunkIndex'] == parent:
-                        if findChunk['type'] == "CAnimDangleComponent":
-                            parentNS = GetChunkNS(findChunk['constraint'], cur_chunks, i)
-                        else:
-                            parentNS = findChunk['type']+str(i)+str(parent)
-                    if findChunk['chunkIndex'] == child:
-                        if findChunk['type'] == "CAnimDangleComponent":
-                            childNS = GetChunkNS(findChunk['constraint'], cur_chunks, i)
-                        else:
-                            childNS = findChunk['type']+str(i)+str(child)
-                if parentNS and childNS:
-                    print([parentNS, childNS])
-                    constrains.append([ent_namespace+parentNS, ent_namespace+childNS])
-                else:
-                    print("ERROR FINDING SKINNING ATTACHMENT")
-            if "mesh" in chunk:
-                fbx_name = fbx_util.importFbx(chunk['mesh'], chunk['type']+str(i)+str(chunk['chunkIndex']), entity.name)
-                if "\\he_" in chunk['mesh']:
-                    eye_meshes.append(chunk_namespace)
-                if "\\c_" in chunk['mesh'] or "\\hh_" in chunk['mesh'] or "\\hb_" in chunk['mesh']:
-                    hair_meshes.append(chunk_namespace)
-            if "skeleton" in chunk:
-                rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
-                root_bone = import_rig.import_w3_rig(chunk['skeleton'],chunk_namespace)
-                group = pm.group(n=rig_grp_name, em=True )
-                pm.parent(root_bone,group)
-                pm.select(group)
-                pm.xform( ro=(90,0,180), s=(100,100,100) )
-                rig_rig= root_bone
+    
+    #for template in selectedAppearance.includedTemplates:
+    if entity.appearances is not None and entity.appearances:
+        selectedAppearance = entity.appearances[ui.listWidget.selectedIndexes()[0].row()]
+        for i in range(len(selectedAppearance.includedTemplates)):
+            cur_chunks = selectedAppearance.includedTemplates[i]['chunks']
+            for chunk in cur_chunks:
+                #each chunk gets it's own namespace as each "CMeshComponent" has lods and materials with the same name
+                # ENTITY_NAMESPACE + TYPE + TEMPLATE_INDEX + CHUNK_INDEX
+                chunk_namespace = ent_namespace+chunk['type']+str(i)+str(chunk['chunkIndex'])
+                if not isChildNode(chunk['chunkIndex'], cur_chunks):
+                    constrains.append([entity.name, chunk_namespace])
+                if chunk['type'] == "CMeshSkinningAttachment" or chunk['type'] == "CAnimatedAttachment":
+                    parent = chunk['parent']
+                    child = chunk['child']
+                    for findChunk in cur_chunks:
+                        if findChunk['chunkIndex'] == parent:
+                            if findChunk['type'] == "CAnimDangleComponent":
+                                parentNS = GetChunkNS(findChunk['constraint'], cur_chunks, i)
+                            else:
+                                parentNS = findChunk['type']+str(i)+str(parent)
+                        if findChunk['chunkIndex'] == child:
+                            if findChunk['type'] == "CAnimDangleComponent":
+                                childNS = GetChunkNS(findChunk['constraint'], cur_chunks, i)
+                            else:
+                                childNS = findChunk['type']+str(i)+str(child)
+                    if parentNS and childNS:
+                        print([parentNS, childNS])
+                        constrains.append([ent_namespace+parentNS, ent_namespace+childNS])
+                    else:
+                        print("ERROR FINDING SKINNING ATTACHMENT")
+                if "mesh" in chunk:
+                    fbx_name = fbx_util.importFbx(chunk['mesh'], chunk['type']+str(i)+str(chunk['chunkIndex']), entity.name)
+                    if "\\he_" in chunk['mesh']:
+                        eye_meshes.append(chunk_namespace)
+                    if "\\c_" in chunk['mesh'] or "\\hh_" in chunk['mesh'] or "\\hb_" in chunk['mesh']:
+                        hair_meshes.append(chunk_namespace)
+                if "skeleton" in chunk:
+                    rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
+                    root_bone = import_rig.import_w3_rig(chunk['skeleton'],chunk_namespace)
+                    group = pm.group(n=rig_grp_name, em=True )
+                    pm.parent(root_bone,group)
+                    pm.select(group)
+                    pm.xform( ro=(90,0,180), s=(100,100,100) )
+                    rig_rig= root_bone
 
-            if "dyng" in chunk:
-                rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
-                root_bone = import_rig.import_w3_rig(chunk['dyng'],chunk_namespace)
-                group = pm.group(n=rig_grp_name, em=True )
-                pm.parent(root_bone,group)
-                pm.select(group)
-                pm.xform( ro=(90,0,180), s=(100,100,100) )
+                if "dyng" in chunk:
+                    rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
+                    root_bone = import_rig.import_w3_rig(chunk['dyng'],chunk_namespace)
+                    group = pm.group(n=rig_grp_name, em=True )
+                    pm.parent(root_bone,group)
+                    pm.select(group)
+                    pm.xform( ro=(90,0,180), s=(100,100,100) )
 
-            if "mimicFace" in chunk:
-                rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
-                #root_bone = import_rig.import_w3_rig(chunk['rig'],chunk_namespace)
-                faceData = import_rig.loadFaceFile(chunk['mimicFace'])
-                root_bone = import_rig.import_w3_rig2(faceData.mimicSkeleton,chunk_namespace)
-                group = pm.group(n=rig_grp_name, em=True )
-                pm.parent(root_bone,group)
-                pm.select(group)
-                pm.xform( ro=(90,0,180), s=(100,100,100) )
-                mimic_rig= root_bone
-                mimic_namespace = chunk_namespace
-        if "camera" in entity.includedTemplates[i]:
-            currentNs = cmds.namespaceInfo(cur=True)
-            cmds.namespace(relativeNames=True)
-            if not cmds.namespace(ex=':%s'%entity.name):
-                cmds.namespace(add=':%s'%entity.name)
-            cmds.namespace(set=':%s'%entity.name)
-            camera = pm.camera(name="w_cam")
-            pm.parent( camera, "Camera_Node" )
-            pm.xform( ro=(90, 0, 0), s=(0.2,0.2,0.2), t=(0, 0, 0) )
-            cmds.namespace(set=currentNs)
-            cmds.namespace(relativeNames=False)
+                if "mimicFace" in chunk:
+                    rig_grp_name = entity.name+chunk['type']+"_rig"+"_grp"
+                    #root_bone = import_rig.import_w3_rig(chunk['rig'],chunk_namespace)
+                    faceData = import_rig.loadFaceFile(chunk['mimicFace'])
+                    root_bone = import_rig.import_w3_rig2(faceData.mimicSkeleton,chunk_namespace)
+                    group = pm.group(n=rig_grp_name, em=True )
+                    pm.parent(root_bone,group)
+                    pm.select(group)
+                    pm.xform( ro=(90,0,180), s=(100,100,100) )
+                    mimic_rig= root_bone
+                    mimic_namespace = chunk_namespace
+            if "camera" in selectedAppearance.includedTemplates[i]:
+                currentNs = cmds.namespaceInfo(cur=True)
+                cmds.namespace(relativeNames=True)
+                if not cmds.namespace(ex=':%s'%entity.name):
+                    cmds.namespace(add=':%s'%entity.name)
+                cmds.namespace(set=':%s'%entity.name)
+                camera = pm.camera(name="w_cam")
+                pm.parent( camera, "Camera_Node" )
+                pm.xform( ro=(90, 0, 0), s=(0.2,0.2,0.2), t=(0, 0, 0) )
+                cmds.namespace(set=currentNs)
+                cmds.namespace(relativeNames=False)
+
 
     if entity.staticMeshes is not None:
         cur_chunks = entity.staticMeshes.get('chunks', [])
@@ -173,7 +239,8 @@ def import_ent(filename, load_face_poses):
                         childNS = findChunk['type']+str(i)+str(child)+":Mesh_lod0"
                 if parentSlotName and childNS:
                     print([parentSlotName, childNS])
-                    HardAttachments.append([ent_namespace+parentSlotName, ent_namespace+childNS])
+                    if pm.objExists(ent_namespace+parentSlotName) and pm.objExists( ent_namespace+childNS):
+                        HardAttachments.append([ent_namespace+parentSlotName, ent_namespace+childNS])
                 else:
                     print("ERROR FINDING SKINNING ATTACHMENT")
 

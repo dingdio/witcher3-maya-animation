@@ -73,10 +73,10 @@ class CSkeletalAnimationSet:
 class CCutsceneTemplate:
     def __init__(self, animations=[], SCutsceneActorDefs=[]):
         self.animations = animations
-        self.SCutsceneActorDefs = SCutsceneActorDefs
+        self.SCutsceneActorDefs = []#SCutsceneActorDefs
     @classmethod
     def from_json(cls, data):
-        SCutsceneActorDefs = list(map(SCutsceneActorDef.from_json, data["SCutsceneActorDefs"]))
+        SCutsceneActorDefs = []#list(map(SCutsceneActorDef.from_json, data["SCutsceneActorDefs"]))
         animations = list(map(CSkeletalAnimationSetEntry.from_json, data["animations"]))
         return cls(animations, SCutsceneActorDefs)
 
@@ -153,14 +153,36 @@ class Track:
         self.dt = dt
         self.trackFrames = trackFrames
 
+class CMovingPhysicalAgentComponent:
+    def __init__(self,
+                skeleton="none"):
+        self.skeleton = skeleton
+    @classmethod
+    def from_json(cls, data):
+        return cls(**data)
+
+class CAppearance:
+    def __init__(self,
+                name="",
+                includedTemplates=[]):
+        self.name = name
+        self.includedTemplates = includedTemplates
+    @classmethod
+    def from_json(cls, data):
+        return cls(**data)
 
 class Entity: 
     def __init__(self,
                 name="default_name",
-                animation_rig = "none",
-                includedTemplates = [],
+                MovingPhysicalAgentComponent= {},
+                appearances = [],
                 staticMeshes = {}):
         self.name = name
-        self.animation_rig = animation_rig
-        self.includedTemplates = includedTemplates
+        self.MovingPhysicalAgentComponent = MovingPhysicalAgentComponent
+        self.appearances = appearances
         self.staticMeshes = staticMeshes
+    @classmethod
+    def from_json(cls, data):
+        data["MovingPhysicalAgentComponent"] = CMovingPhysicalAgentComponent.from_json(data["MovingPhysicalAgentComponent"])
+        data["appearances"] = list(map(CAppearance.from_json, data["appearances"]))
+        return cls(**data)

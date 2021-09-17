@@ -4,7 +4,7 @@ import os
 
 def importFbx(fbx_filename, ns="cake", name=":"):
     if not os.path.exists(fbx_filename):
-        cmds.confirmDialog( title='Error', button='OK', message='Can\'t find "{0}". Check it exists.'.format( fbx_filename ))
+        cmds.confirmDialog( title='Error', button='OK', message='Can\'t find "{0}". Check it exists in the FBX depo.'.format( fbx_filename ))
     #set namespace
     ns = name+":"+ns
     currentNs = cmds.namespaceInfo(cur=True)

@@ -44,6 +44,7 @@ def import_w3_rig2(w3Data,ns="ciri"):
     cmds.namespace(set=':%s'%ns)
 
     for bone in w3Data.bones:
+        bone.name = bone.name.replace(" ", "_")
         cmds.select( d=True )
         if not cmds.objExists(bone.name):
             cmds.joint( name=bone.name, p=(float(bone.co[0]),float(bone.co[1]),float(bone.co[2])), rad=0.01 )

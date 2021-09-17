@@ -13,6 +13,8 @@ import tree
 reload(tree)
 import material_utils
 reload(material_utils)
+import settings
+reload(settings)
 
 #maya imports
 import pymel.core as pm
@@ -41,8 +43,22 @@ else:
     from shiboken2 import wrapInstance
     from vendor.Qt.QtCore import Signal
 
+#from vendor.Qt.QtCore import QSettings
+
 class RedManager(QtWidgets.QWidget):
-    def __init__(self, dock=False):
+    def __init__(self, dock=False): 
+        
+        # ## REGISTER DIALOGS
+        # self.Dialog = QtWidgets.QDialog()
+        # ui = Ui_Dialog()
+        # ui.setupUi(self.Dialog)
+
+        ## GET SETTINGS
+        self.settings = settings.get()
+
+
+        #print (self.settings.repopath)
+        #self.settings = QSettings('redManager', 'redManagersettings')
         if dock:
             parent = getDock()
         else:
@@ -65,8 +81,10 @@ class RedManager(QtWidgets.QWidget):
         self.setupUi(parent)
         self.setup_buttons()
         self.parent().layout().addWidget(self)
+
+        self.lineEditRawDepo.setText(self.settings.repopath)
+        self.checkBoxImportFace.setChecked(self.settings.importFacePoses)
         directory = os.path.join(pm.internalVar(userAppDir=True), 'witcher_rigs')
-        #self.populate_cutscene(directory+"\\cutscenes\\cs104_keira_bath.w2cutscene.json")
         #self.populate_animSet(directory+"\\anims\\new_ciri.w2anims.json")
         #self.populate_animSet(directory+"\\anims\\ciri_mimic_animation.w2anims.json")
         self.populate_actors()
@@ -210,16 +228,20 @@ class RedManager(QtWidgets.QWidget):
         self.actionImport_w2cutscene.triggered.connect(self.actionImport_w2cut)
         self.actionImport_w2anims_json.triggered.connect(self.actionImport_w2anims)
 
-        
+        self.pushButtonSaveSettings.clicked.connect(self.saveSettingsClicked)
+        self.btnExportCutscene.clicked.connect(self.exportCutsceneClicked)
+        self.toolButtonDepoSelect.clicked.connect(self.depoSelectClicked)
+    
         self.animLoadSelectedBtn.clicked.connect(self.animLoadSelected)
 
         self.loadAnimBtn.clicked.connect(self.importAnimsTree)
         self.loadAllBtn.clicked.connect(self.importAnimsTree)
         self.actorListWidget.clicked.connect(self.getActorValue)
 
+
     def setupUi(self, redManager):
         redManager.setObjectName("redManager")
-        redManager.resize(945, 734)
+        redManager.resize(1077, 734)
         self.centralwidget = QtWidgets.QWidget(redManager)
         self.centralwidget.setEnabled(True)
         self.centralwidget.setObjectName("centralwidget")
@@ -393,6 +415,9 @@ class RedManager(QtWidgets.QWidget):
         self.loadAllBtn.setObjectName("loadAllBtn")
         self.horizontalLayout.addWidget(self.loadAllBtn)
         self.gridLayout_7.addLayout(self.horizontalLayout, 1, 0, 1, 1)
+        self.btnExportCutscene = QtWidgets.QPushButton(self.Cutscene)
+        self.btnExportCutscene.setObjectName("btnExportCutscene")
+        self.gridLayout_7.addWidget(self.btnExportCutscene, 2, 0, 1, 1)
         self.tabWidget.addTab(self.Cutscene, "")
         self.template = QtWidgets.QWidget()
         self.template.setObjectName("template")
@@ -408,18 +433,44 @@ class RedManager(QtWidgets.QWidget):
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         self.gridLayout_8.addWidget(self.treeWidget, 0, 0, 1, 1)
         self.tabWidget.addTab(self.template, "")
+        self.materialTab = QtWidgets.QWidget()
+        self.materialTab.setObjectName("materialTab")
+        self.formLayout_2 = QtWidgets.QFormLayout(self.materialTab)
+        self.formLayout_2.setObjectName("formLayout_2")
+        self.pushButtonAddHair = QtWidgets.QPushButton(self.materialTab)
+        self.pushButtonAddHair.setObjectName("pushButtonAddHair")
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.pushButtonAddHair)
+        self.pushButtonRemoveHair = QtWidgets.QPushButton(self.materialTab)
+        self.pushButtonRemoveHair.setObjectName("pushButtonRemoveHair")
+        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.pushButtonRemoveHair)
+        self.tabWidget.addTab(self.materialTab, "")
         self.SettingsTab = QtWidgets.QWidget()
         self.SettingsTab.setObjectName("SettingsTab")
         self.formLayout = QtWidgets.QFormLayout(self.SettingsTab)
         self.formLayout.setObjectName("formLayout")
-        self.checkBox = QtWidgets.QCheckBox(self.SettingsTab)
-        self.checkBox.setObjectName("checkBox")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.checkBox)
+        self.checkBoxImportFace = QtWidgets.QCheckBox(self.SettingsTab)
+        self.checkBoxImportFace.setObjectName("checkBoxImportFace")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.checkBoxImportFace)
+        self.labelRawDepo = QtWidgets.QLabel(self.SettingsTab)
+        self.labelRawDepo.setObjectName("labelRawDepo")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.labelRawDepo)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.lineEditRawDepo = QtWidgets.QLineEdit(self.SettingsTab)
+        self.lineEditRawDepo.setObjectName("lineEditRawDepo")
+        self.horizontalLayout_4.addWidget(self.lineEditRawDepo)
+        self.toolButtonDepoSelect = QtWidgets.QToolButton(self.SettingsTab)
+        self.toolButtonDepoSelect.setObjectName("toolButtonDepoSelect")
+        self.horizontalLayout_4.addWidget(self.toolButtonDepoSelect)
+        self.formLayout.setLayout(2, QtWidgets.QFormLayout.SpanningRole, self.horizontalLayout_4)
+        self.pushButtonSaveSettings = QtWidgets.QPushButton(self.SettingsTab)
+        self.pushButtonSaveSettings.setObjectName("pushButtonSaveSettings")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.pushButtonSaveSettings)
         self.tabWidget.addTab(self.SettingsTab, "")
         self.gridLayout.addWidget(self.tabWidget, 1, 1, 1, 1)
         redManager.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(redManager)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 945, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1077, 21))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -467,8 +518,8 @@ class RedManager(QtWidgets.QWidget):
         self.importFacBtn.setText(_translate("redManager", "Import"))
         self.exportFacBtn.setText(_translate("redManager", "Export"))
         self.groupCons.setTitle(_translate("redManager", "Skeleton Constrain Tools"))
-        self.nstLabel.setText(_translate("redManager", "Target Namespace"))
-        self.nsLabel.setText(_translate("redManager", "Source Namespace"))
+        self.nstLabel.setText(_translate("redManager", "Target Namespace (eg. Clothes)"))
+        self.nsLabel.setText(_translate("redManager", "Source Namespace (eg. Body)"))
         self.addNS.setText(_translate("redManager", "Add"))
         self.remNS.setText(_translate("redManager", "Remove"))
         self.attachRigBtn.setText(_translate("redManager", "Attach"))
@@ -477,6 +528,7 @@ class RedManager(QtWidgets.QWidget):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.animSetTab), _translate("redManager", "Animation Set"))
         self.loadAnimBtn.setText(_translate("redManager", "Load Selected"))
         self.loadAllBtn.setText(_translate("redManager", "Load All"))
+        self.btnExportCutscene.setText(_translate("redManager", "Export Cutscene"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Cutscene), _translate("redManager", "Cutscene"))
         self.treeWidget.headerItem().setText(0, _translate("redManager", "Name"))
         self.treeWidget.headerItem().setText(1, _translate("redManager", "Value"))
@@ -489,7 +541,13 @@ class RedManager(QtWidgets.QWidget):
         self.treeWidget.topLevelItem(0).child(1).setText(1, _translate("redManager", "3"))
         self.treeWidget.setSortingEnabled(__sortingEnabled)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.template), _translate("redManager", "Template"))
-        self.checkBox.setText(_translate("redManager", "Import Face Poses"))
+        self.pushButtonAddHair.setText(_translate("redManager", "Add Hair Shader"))
+        self.pushButtonRemoveHair.setText(_translate("redManager", "Remove Hair Shader"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.materialTab), _translate("redManager", "Materials"))
+        self.checkBoxImportFace.setText(_translate("redManager", "Import Face Poses"))
+        self.labelRawDepo.setText(_translate("redManager", "Fbx Depo Path:"))
+        self.toolButtonDepoSelect.setText(_translate("redManager", "..."))
+        self.pushButtonSaveSettings.setText(_translate("redManager", "Save Settings"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.SettingsTab), _translate("redManager", "Settings"))
         self.menuFile.setTitle(_translate("redManager", "File"))
         self.menuAbout.setTitle(_translate("redManager", "Help"))
@@ -516,6 +574,9 @@ class RedManager(QtWidgets.QWidget):
             cmds.parent( root_bone, 'group1' )
             cmds.select('group1');
             cmds.xform( ro=(90,0,180), s=(100,100,100))
+
+    def importMaterial(self):
+        pass
         # mat_names=[
         #     "PC0000_00_Bandage",
         #     "PC0000_00_BodyA",
@@ -570,9 +631,12 @@ class RedManager(QtWidgets.QWidget):
         if not fileName[0]:
             pass
         else:
-            scene_actor = self.getSceneActor()
-            pm.select( scene_actor+"*", r=True, hi=True )
-            pm.cutKey( )
+            try:
+                scene_actor = self.getSceneActor()
+                pm.select( scene_actor+"*", r=True, hi=True )
+                pm.cutKey( )
+            except:
+                scene_actor = "ciri"
             animData = anims.import_w3_animation(fileName[0], scene_actor)
             #animData = import_rig.import_w3_animation(fileName[0], rig_filename, "face") #TODO CHECK FOR FACE ANIMATIONS
             self.animationLoaded.setText(fileName[0])
@@ -664,10 +728,11 @@ class RedManager(QtWidgets.QWidget):
     def actionImport_ent(self):
         directory = self.getDirectory()
         fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select Entity", directory,"W3 entity (*.w2ent.json)")
+        #fileName=[]
         if not fileName[0]:
             pass
         else:
-            root_bone = entity.import_ent(fileName[0], self.checkBox.isChecked())
+            root_bone = entity.import_ent(fileName[0], self.checkBoxImportFace.isChecked())
             print(root_bone)
             # self.rig.setText(fileName[0])
             # cmds.group( n='group1', em=True )
@@ -697,7 +762,19 @@ class RedManager(QtWidgets.QWidget):
             pass
         else:
             print("Importing Animation Set")
-            self.populate_animSet(fileName[0])
+            self.populate_animSet(fileName[0]) 
+
+    def closeEvent(self, event):
+        print("Close Event")
+    def saveSettingsClicked(self):
+        self.settings.importFacePoses = self.checkBoxImportFace.isChecked()
+        self.settings.repopath = self.lineEditRawDepo.text()
+        settings.save(self.settings)
+        print("saving settings")
+    def exportCutsceneClicked(self):
+        print("exportCutscene")
+    def depoSelectClicked(self):
+        print("depoSelect")
 
 def getMayaMainWindow():
     win = omui.MQtUtil_mainWindow()
