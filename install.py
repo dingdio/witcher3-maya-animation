@@ -50,6 +50,7 @@ if r'{path}' not in sys.path:
     sys.path.insert(0, r'{path}')
     
 import witcher3
+from importlib import reload
 reload(witcher3)
 witcher3.w3tool.RedManager(dock=False)
 '''.format(path=srcPath)

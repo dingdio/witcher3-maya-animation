@@ -4,6 +4,7 @@ import re
 from maya import cmds
 import pymel.core as pm
 import import_rig
+from importlib import reload
 reload(import_rig)
 
 import read_json_w3
@@ -313,7 +314,7 @@ def import_ent(filename, load_face_poses):
                     if fileNode:
                         for file in fileNode:
                             textureFile = pm.getAttr(file.fileTextureName)
-                            print 'This is the file', str(textureFile)
+                            print('This is the file'), str(textureFile)
                             create_hair(g, material, file, mat_name)
     # allShader = pm.ls(type='shader')
     # for shade in allShader:

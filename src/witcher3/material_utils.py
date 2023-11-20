@@ -47,7 +47,7 @@ def assignMat(texture_name = "PC0000_00_BodyB_C", material_name = "PC0000_00_Pan
                     pm.disconnectAttr(fileOutColor, coatColor)
                 pm.setAttr(file.fileTextureName, texture_folder+texture_name+".tga")
                 textureFile = pm.getAttr(file.fileTextureName)
-                print 'This is the file', str(textureFile)
+                print('This is the file'), str(textureFile)
                 #create_hair(g, material, file, mat_name)
         bumpNode = material.connections(type='bump2d')
         if bumpNode and "_N" in texture_name:
@@ -57,7 +57,7 @@ def assignMat(texture_name = "PC0000_00_BodyB_C", material_name = "PC0000_00_Pan
             for file in fileNode:
                 pm.setAttr(file.fileTextureName, texture_folder+texture_name+".tga")
                 textureFile = pm.getAttr(file.fileTextureName)
-                print 'This is the file', str(textureFile)
+                print('This is the file'), str(textureFile)
                 #create_hair(g, material, file, mat_name)
 
         #set values for material

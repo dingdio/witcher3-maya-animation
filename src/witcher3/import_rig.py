@@ -6,6 +6,7 @@ import os
 import re
 import json
 import read_json_w3
+from importlib import reload
 reload(read_json_w3)
 import fbx_util
 reload(fbx_util)

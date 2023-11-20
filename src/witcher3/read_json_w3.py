@@ -1,6 +1,7 @@
 
 import json
 import w3_types
+from importlib import reload
 reload(w3_types)
 import maya.api.OpenMaya as om
 import maya.api.OpenMaya as om

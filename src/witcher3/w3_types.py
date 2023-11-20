@@ -1,6 +1,7 @@
 # <pep8 compliant>
 import re
 import read_json_w3
+from importlib import reload
 reload(read_json_w3)
 
 class W3Bone:

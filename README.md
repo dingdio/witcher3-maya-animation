@@ -32,6 +32,7 @@ Add src/witcher3 folder to your maya scripts directory, start Maya and run the f
 
 ```
 import witcher3
+from importlib import reload
 reload(witcher3)
 witcher3.w3tool.RedManager(dock=False)
 ```

@@ -1,6 +1,7 @@
 import os
 
 #local imports
+from importlib import reload
 import import_rig
 reload(import_rig)
 import entity
@@ -778,7 +779,7 @@ class RedManager(QtWidgets.QWidget):
 
 def getMayaMainWindow():
     win = omui.MQtUtil_mainWindow()
-    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+    ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
     return ptr
 
 
@@ -787,7 +788,7 @@ def getDock(name='RedManagerDock'):
     deleteDock(name)
     ctrl = pm.workspaceControl(name, dockToMainWindow=('right', 1), label="Witcher 3 Tools")
     qtCtrl = omui.MQtUtil_findControl(ctrl)
-    ptr = wrapInstance(long(qtCtrl), QtWidgets.QWidget)
+    ptr = wrapInstance(int(qtCtrl), QtWidgets.QWidget)
     return ptr
 
 

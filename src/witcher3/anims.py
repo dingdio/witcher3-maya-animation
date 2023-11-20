@@ -6,6 +6,7 @@ import re
 import json
 import import_rig
 import read_json_w3
+from importlib import reload
 reload(read_json_w3)
 import fbx_util
 reload(fbx_util)
@@ -132,7 +133,7 @@ def export_w3_animation2(filename, start, end, bones, anim_name ="default_name",
         if data['scale_numFrames'] >= longestnumframes:
             longestnumframes = data['scale_numFrames']
         output.append(data)
-    duration = longestnumframes * 0.0333333351;
+    duration = longestnumframes * 0.0333333351
     animBuffer = {
         "version": 0,
         "bones": output,
