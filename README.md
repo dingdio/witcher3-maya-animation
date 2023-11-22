@@ -16,6 +16,10 @@ In particular you can :
 - [Viewing and Exporting Witcher 3 Animations in Maya 2020](https://github.com/dingdio/witcher3-maya-animation/wiki/Viewing-and-Exporting-Witcher-3-Animations-in-Maya-2020)
 - [Importing JSON Animations With Wolven kit](https://github.com/dingdio/witcher3-maya-animation/wiki/Importing-JSON-Animations-With-Wolven-kit)
 - [Wolven-kit](https://github.com/Traderain/Wolven-kit)
+### Motion Extraction:
+- [[Video] HOWTO: Editing motionExtraction + retargeting in MAYA](https://www.youtube.com/watch?v=wQIS12TtoGE)
+- **nikich340 AnimUtil**: https://github.com/nikich340/W3-Maya-AnimUtil
+
 
 ## Installation
 
@@ -35,5 +39,5 @@ import witcher3
 reload(witcher3)
 witcher3.w3tool.RedManager(dock=False)
 ```
-
+If you have problems with Maya 2022 or later check: [Maya 2022+ dev branch](https://github.com/dingdio/witcher3-maya-animation/tree/dev_python3_maya2022+)
 
