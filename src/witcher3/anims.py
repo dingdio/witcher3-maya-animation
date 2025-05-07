@@ -228,6 +228,7 @@ def addAnimation(animData, scene_actor, start, end, firstFrame, type, al):
 
     for fi in range(int(start), int(end)):
         time_index=firstFrame+fi
+        cmds.currentTime(time_index, edit=True)
         #if not animData.tracks:
 
         for bone in animData.bones:
